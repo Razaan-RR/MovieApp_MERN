@@ -1,25 +1,25 @@
 const express = require('express')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const cors = require('cors')
 const app = express()
 const port = 3000
 app.use(cors())
 app.use(express.json())
 
-
-const uri = "mongodb+srv://razaan_db:2iYm0biMskQfQPOb@clusterpractice.wzcrq6x.mongodb.net/?appName=ClusterPractice";
+const uri =
+  'mongodb+srv://razaan_db:2iYm0biMskQfQPOb@clusterpractice.wzcrq6x.mongodb.net/?appName=ClusterPractice'
 
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
-});
+  },
+})
 
 async function run() {
   try {
-    await client.connect();
+    await client.connect()
 
     const db = client.db('model-db')
     const modelCollection = db.collection('models')
@@ -27,34 +27,51 @@ async function run() {
     // get method
     //find - find multiple data
     //findOne - find one particular document
+    app.get('/models', async (req, res) => {
+      const result = await modelCollection.find().toArray() //promise
+      res.send(result)
+    })
 
-    app.get('/models', async (req, res)=>{
-        const result = await modelCollection.find().toArray() //promise
-        res.send(result)
+    app.get('/models/:id', async (req, res) => {
+      const { id } = req.params
+      const movie = await modelCollection.findOne({ _id: new ObjectId(id) })
+      res.send(movie)
     })
 
     // post method
     // insertOne
     // insertMany
-
-    app.post('/models', async (req, res)=>{
+    app.post('/models', async (req, res) => {
       const data = req.body
       // console.log(data)
       const result = await modelCollection.insertOne(data)
       res.send({
         success: true,
-        result
+        result,
       })
     })
 
+    // Update - PUT
+    // UpdateOne
+    // UpdateMany
+    app.put('/models/:id', async(req, res)=>{
+      const { id } = req.params
+      const objectId = new ObjectId(id)
+      const result = modelCollection.updateOne()
+      res.send({
+        success: true
+      })
+    })
 
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    await client.db('admin').command({ ping: 1 })
+    console.log(
+      'Pinged your deployment. You successfully connected to MongoDB!'
+    )
   } finally {
     // await client.close();
   }
 }
-run().catch(console.dir);
+run().catch(console.dir)
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
